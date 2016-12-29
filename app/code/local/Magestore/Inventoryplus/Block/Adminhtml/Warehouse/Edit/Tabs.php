@@ -57,6 +57,13 @@ class Magestore_Inventoryplus_Block_Adminhtml_Warehouse_Edit_Tabs extends Mage_A
                         ->createBlock('inventoryplus/adminhtml_warehouse_edit_tab_form')
                         ->toHtml(),
             ));
+            $this->addTab('certain_time_section', array(
+                'label' => Mage::helper('inventoryplus')->__('Certain time'),
+                'title' => Mage::helper('inventoryplus')->__('Certain time'),
+                'content' => $this->getLayout()
+                    ->createBlock('inventoryplus/adminhtml_warehouse_edit_tab_certaintime')
+                    ->toHtml(),
+            ));
         }
         //warehouse products
         if ($this->getRequest()->getParam('id'))
@@ -98,6 +105,13 @@ class Magestore_Inventoryplus_Block_Adminhtml_Warehouse_Edit_Tabs extends Mage_A
                 'content' => $this->getLayout()
                         ->createBlock('inventoryplus/adminhtml_warehouse_edit_tab_form')
                         ->toHtml(),
+            ));
+            $this->addTab('certain_time_section', array(
+                'label' => Mage::helper('inventoryplus')->__('Certain time'),
+                'title' => Mage::helper('inventoryplus')->__('Certain time'),
+                'content' => $this->getLayout()
+                    ->createBlock('inventoryplus/adminhtml_warehouse_edit_tab_certaintime')
+                    ->toHtml(),
             ));
             /*
             $this->addTab('salesstaff_section', array(

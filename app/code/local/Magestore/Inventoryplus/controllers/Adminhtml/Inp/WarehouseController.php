@@ -639,6 +639,15 @@ class Magestore_Inventoryplus_Adminhtml_Inp_WarehouseController extends Magestor
     public function saveAction() {
         $admin = Mage::getSingleton('admin/session')->getUser();
         if ($data = $this->getRequest()->getPost()) {
+            $certain_time = array();
+            $orderStatus = Mage::getModel('sales/order_status')->getCollection();
+            foreach ($orderStatus as $item_status){
+                if($data['orderstatus_'.$item_status->getStatus()] != ''){
+                    $certain_time['orderstatus_'.$item_status->getStatus()] = $data['orderstatus_'.$item_status->getStatus()];
+                }
+            }
+
+            $data['certain_time'] = json_encode($certain_time);
             /* save POS users */
             $this->_savePOSUser($data);
             if (isset($data['manager']) && $data['manager']) {
