@@ -10,18 +10,14 @@ class Magestore_Inventoryplus_IndexController extends Mage_Core_Controller_Front
 {
 
     public function indexAction()
-    {$template_id   = Mage::getStoreConfig('inventoryplus/general/order_status_alert');
+    {
+        $template_id   = Mage::getStoreConfig('inventoryplus/general/order_status_alert');
         $storeId       = Mage::app()->getStore()->getStoreId();
         $emailTemplate = Mage::getModel('core/email_template')->load($template_id);
-//        $vars          = array(
-//            'customer_name' => 'test111111111'
-//        );
-//        $emailTemplate->getProcessedTemplate($vars);
 
         $emailTemplate->setSenderEmail(Mage::getStoreConfig('trans_email/ident_general/email', $storeId));
 
         $emailTemplate->setSenderName(Mage::getStoreConfig('trans_email/ident_general/name', $storeId));
-//        $emailTemplate->send($receiveEmail, $receiveName, $vars);
 
         $warehouses = Mage::getModel('inventoryplus/warehouse')->getCollection();
         foreach ($warehouses as $warehouse){
@@ -29,6 +25,7 @@ class Magestore_Inventoryplus_IndexController extends Mage_Core_Controller_Front
             $other_email = explode(';', $warehouse->getData('other_email'));
             $manager_email = $warehouse->getData('manager_email');
             $manager_name = $warehouse->getData('manager_name');
+            $text_message = $warehouse->getData('text_message');
             $arrayOrder = array();
             $timestamp =  Mage::getModel('core/date')->timestamp(strtotime(time()));
             if(count($certain_times) > 0 && count($other_email) > 0){
@@ -36,11 +33,13 @@ class Magestore_Inventoryplus_IndexController extends Mage_Core_Controller_Front
                     $orderstatus = substr($key, 12);
                     $time_config = $certain_time;
                     $orders = Mage::getModel('sales/order')->getCollection();
-                    $arrayOrder[$orderstatus] = array();
+                    $status = Mage::getModel('sales/order_status')->getCollection()
+                        ->addFieldToFilter('status', $orderstatus)->getFirstItem()->getData('label');
+                    $arrayOrder[$status] = array();
                     foreach ($orders as $order){
                         if($order->getStatus() == $orderstatus){
                             if(($order->getCreatedAt() + $certain_time*24*60*60) < $timestamp){
-                                $arrayOrder[$orderstatus][] = $order->getId();
+                                $arrayOrder[$status][] = '#'.$order->getIncrementId();
                             }
                         }
                     }
@@ -48,25 +47,47 @@ class Magestore_Inventoryplus_IndexController extends Mage_Core_Controller_Front
             }else{
                 break;
             }
-            $vars          = array(
-                'data_order_status_alert' => Zend_Debug::dump($arrayOrder)
-            );
+            if(count($arrayOrder) == 0){
+                break;
+            }else{
+                $table = "<table style='width: 100%'><thead>";
+                $th = "";
+                $td = "";
+                $tr = "";
+
+                foreach ($arrayOrder as $keyStatus => $itemStatus){
+                    $th .= "<th style='background-color: #e8503a;color: white;padding: 8px;'>$keyStatus</th>";
+                    $dataTd = "";
+                    $td = "";
+                    foreach ($itemStatus as $item){
+                        $dataTd .= $item."<br/>";
+                    }
+                    $td = "<td style='padding-left: 5px;vertical-align: top;'>".$dataTd."</td>";
+                    $tr .= $td;
+                }
+                $tr = "<tr style='border-bottom: 1px solid #000000'>".$tr."</tr>";
+                $table .= $th."</thead><tbody>$tr</tbody></table>";
+                $vars = array(
+                    'data_order_status_alert' => $text_message."<br/>".$table,
+                );
+            }
+
             $emailTemplate->getProcessedTemplate($vars);
 
             $isCheck = false;
             foreach ($other_email as $o_email){
                 if(trim($o_email) == $manager_email)
                     $isCheck = true;
-                $emailTemplate->send($o_email, 'Other name', $vars);
-            }
-
-            if(!$isCheck){
-                if (!filter_var($manager_email, FILTER_VALIDATE_EMAIL) === false) {
-                    $emailTemplate->send($manager_email, $manager_name, $vars);
+                if (!filter_var(trim($o_email), FILTER_VALIDATE_EMAIL) == false) {
+                    $emailTemplate->send(trim($o_email), 'Other name', $vars);
                 }
             }
 
-
+            if(!$isCheck){
+                if (!filter_var($manager_email, FILTER_VALIDATE_EMAIL) == false) {
+                    $emailTemplate->send($manager_email, $manager_name, $vars);
+                }
+            }
 
         }
 

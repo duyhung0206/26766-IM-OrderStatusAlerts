@@ -48,7 +48,9 @@ class Magestore_Inventoryplus_Block_Adminhtml_Warehouse_Edit_Tab_Certaintime ext
         $fieldset3 = $form->addFieldset('other_email_form', array(
             'legend' => Mage::helper('inventoryplus')->__('Other email receive notify')
         ));
-
+        $fieldset1 = $form->addFieldset('text_message_form', array(
+            'legend' => Mage::helper('inventoryplus')->__('Email')
+        ));
         $fieldset2 = $form->addFieldset('certain_time_form', array(
             'legend' => Mage::helper('inventoryplus')->__('Order Status Monitoring')
         ));
@@ -101,6 +103,12 @@ class Magestore_Inventoryplus_Block_Adminhtml_Warehouse_Edit_Tab_Certaintime ext
         $fieldset3->addField('other_email', 'textarea', array(
             'label' => Mage::helper('inventoryplus')->__('List other email receive notify'),
             'name' => 'other_email',
+            'disabled' => $readonly,
+        ));
+
+        $fieldset1->addField('text_message', 'textarea', array(
+            'label' => Mage::helper('inventoryplus')->__('Message send notify'),
+            'name' => 'text_message',
             'disabled' => $readonly,
         ));
 
